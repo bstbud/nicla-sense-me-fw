@@ -22,15 +22,27 @@ bool EslovHandler::begin()
   eslovBusy();
   Wire.begin(ESLOV_DEFAULT_ADDRESS);
   eslovActive = true;
-  Wire.onReceive(EslovHandler::onReceive); 
+  Wire.onReceive(EslovHandler::onReceive);
   Wire.onRequest(EslovHandler::onRequest);
   eslovAvailable();
+
+#if 1   //DEBUG
+  digitalWrite(p24, LOW);
+  delay(1);
+  digitalWrite(p24, HIGH);
+  delay(666);
+  digitalWrite(p24, LOW);
+  digitalWrite(p24, HIGH); delay(6); digitalWrite(p24, LOW);
+#endif
+
   return true;
 }
 
 void EslovHandler::onReceive(int length)
 {
+    //digitalWrite(p24, HIGH);
   eslovHandler.receiveEvent(length);
+    //digitalWrite(p24, LOW);
 }
 
 void EslovHandler::onRequest()
@@ -63,15 +75,20 @@ void EslovHandler::requestEvent()
   if (_state == ESLOV_AVAILABLE_SENSOR_STATE) {
     uint8_t availableData = sensortec.availableSensorData();
     Wire.write(availableData);
+    if (_debug) {
+      _debug->print("ad: ");
+      _debug->println(availableData);
+    }
 
   } else if (_state == ESLOV_READ_SENSOR_STATE) {
     SensorDataPacket data;
     sensortec.readSensorData(data);
-    Wire.write((uint8_t*)&data, sizeof(SensorDataPacket));
+    ret =Wire.write((uint8_t*)&data, sizeof(SensorDataPacket));
     if (_debug) {
       _debug->print("data: ");
       _debug->println(data.sensorId);
       _debug->println(data.size);
+      _debug->println(String("ret: ") + String(ret));
     }
 
   } else if (_state == ESLOV_SENSOR_ACK_STATE) {
@@ -106,7 +123,7 @@ void EslovHandler::receiveEvent(int length)
   while(Wire.available())
   {
     eslovBusy();
-    _rxBuffer[_rxIndex++] = Wire.read(); 
+    _rxBuffer[_rxIndex++] = Wire.read();
 
     // Check if packet is complete depending on its opcode
     if (_rxBuffer[0] == ESLOV_DFU_EXTERNAL_OPCODE) {
@@ -189,7 +206,7 @@ void EslovHandler::debug(Stream &stream)
   _debug = &stream;
 }
 
-void EslovHandler::dump() 
+void EslovHandler::dump()
 {
   if (_debug) {
     _debug->print("received: ");

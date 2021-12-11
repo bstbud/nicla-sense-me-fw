@@ -67,6 +67,7 @@ public:
   void setLDOTimeout(int time);
 
   void debug(Stream &stream);
+  void enableDBG();
 
 private:
   Stream *_debug;

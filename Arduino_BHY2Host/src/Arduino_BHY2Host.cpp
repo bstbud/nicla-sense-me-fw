@@ -34,6 +34,8 @@ bool Arduino_BHY2Host::begin(bool passthrough, NiclaWiring niclaConnection)
   if (niclaConnection == NICLA_AS_SHIELD) {
     eslovHandler.niclaAsShield();
   }
+
+
   return eslovHandler.begin(passthrough);
 }
 

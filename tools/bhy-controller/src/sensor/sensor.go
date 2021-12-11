@@ -97,7 +97,7 @@ func readSensorData(buffer []byte, port serial.Port) {
 
 func liveRead(port serial.Port) {
 	for {
-		singleRead(port, false)
+		singleRead(port, true)
 		time.Sleep(300 * time.Millisecond)
 	}
 }

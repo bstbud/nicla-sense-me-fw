@@ -12,6 +12,7 @@ BoschSensortec::~BoschSensortec()
 {
 }
 
+
 bool BoschSensortec::begin()
 {
   auto ret = bhy2_init(BHY2_SPI_INTERFACE, bhy2_spi_read, bhy2_spi_write, bhy2_delay_us, MAX_READ_WRITE_LEN, NULL, &_bhy2);

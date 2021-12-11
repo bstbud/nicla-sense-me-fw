@@ -10,6 +10,8 @@
 #include "mbed.h"
 #include "Nicla_System.h"
 
+#define PDBG p24
+
 Arduino_BHY2::Arduino_BHY2() :
   _debug(NULL),
   _pingTime(0),
@@ -26,13 +28,33 @@ Arduino_BHY2::~Arduino_BHY2()
 {
 }
 
+void Arduino_BHY2::enableDBG()
+{
+#if 1
+      pinMode(PDBG, OUTPUT);
+      digitalWrite(PDBG, LOW);
+      int i;
+
+      for (i = 0; i < 3; i++) {
+          digitalWrite(PDBG, HIGH);
+          ::delay(1000);
+          digitalWrite(PDBG, LOW);
+          ::delay(1000);
+      }
+#endif
+
+}
+
 void Arduino_BHY2::pingI2C() {
   char response = 0xFF;
   int currTime = millis();
   if ((currTime - _pingTime) > 30000) {
     _pingTime = currTime;
     //Read status reg
+    digitalWrite(PDBG, HIGH); ::delay(33);digitalWrite(PDBG, LOW); ::delay(33);
+    digitalWrite(PDBG, HIGH);
     nicla::readLDOreg();
+    digitalWrite(PDBG, LOW);
   }
 }
 
@@ -72,6 +94,8 @@ bool Arduino_BHY2::begin(NiclaConfig config, NiclaWiring niclaConnection)
     eslovHandler.niclaAsShield();
   }
 
+
+
   pinMode(_eslovIntPin, INPUT);
   nicla::begin();
   _startTime = millis();
@@ -94,6 +118,8 @@ bool Arduino_BHY2::begin(NiclaConfig config, NiclaWiring niclaConnection)
     _debug->print("Eslov int pin: ");
     _debug->println(_eslovIntPin);
   }
+
+  enableDBG();
 
   return true;
 }
@@ -166,7 +192,7 @@ void Arduino_BHY2::update(unsigned long ms)
   delay(ms);
 }
 
-void Arduino_BHY2::delay(unsigned long ms) 
+void Arduino_BHY2::delay(unsigned long ms)
 {
   unsigned long start = millis();
   unsigned long elapsed = 0;
@@ -175,6 +201,8 @@ void Arduino_BHY2::delay(unsigned long ms)
       bleHandler.poll(ms - elapsed);
       elapsed = millis() - start;
     }
+  } else {
+      //::delay(ms);
   }
 }
 

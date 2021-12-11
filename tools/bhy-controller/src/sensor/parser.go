@@ -67,6 +67,8 @@ func loadTypes() map[string]interface{} {
 func parseData(data *SensorData) {
 	var eventcount float64 = 0
 
+    fmt.Printf("Sensor id: %d ", data.id)
+
 	sensorMap := types[strconv.Itoa(int(data.id))].(map[string]interface{})
 	sensorScheme := sensorMap["scheme"].(string)
 	sensorName := sensorMap["name"].(string)

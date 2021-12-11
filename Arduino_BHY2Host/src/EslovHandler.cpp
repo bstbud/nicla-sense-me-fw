@@ -18,10 +18,20 @@ EslovHandler::~EslovHandler()
 {
 }
 
+
+#define PDBG 0
+
 bool EslovHandler::begin(bool passthrough)
 {
+    if (_debug) {
+        _debug->println("EslovHandler::begin");
+    }
+
   pinMode(_eslovIntPin, OUTPUT);
   digitalWrite(_eslovIntPin, LOW);
+
+  pinMode(PDBG, OUTPUT);
+  digitalWrite(PDBG, LOW); delay(10); digitalWrite(PDBG, HIGH);delay(10); digitalWrite(PDBG, LOW);
 
   Wire.begin();
   Wire.setClock(400000);
@@ -29,10 +39,11 @@ bool EslovHandler::begin(bool passthrough)
     Serial.begin(115200);
   }
 
+
   return true;
 }
 
-void EslovHandler::update() 
+void EslovHandler::update()
 {
   while (Serial.available()) {
     _rxBuffer[_rxIndex++] = Serial.read();
@@ -78,7 +89,7 @@ void EslovHandler::update()
         _rxIndex = 0;
 
         delay(ESLOV_DELAY);
-      
+
         Serial.write(ack);
       }
 
@@ -131,7 +142,7 @@ void EslovHandler::update()
 
         _rxIndex = 0;
       }
-      
+
     } else {
     if (_debug) {
       _debug->println("no opcode");
@@ -139,7 +150,7 @@ void EslovHandler::update()
       _rxIndex = 0;
     }
   }
-  
+
 }
 
 void EslovHandler::writeDfuPacket(uint8_t *data, uint8_t length)
@@ -185,7 +196,7 @@ void EslovHandler::writeStateChange(EslovState state)
 void EslovHandler::writeConfigPacket(SensorConfigurationPacket& config)
 {
   delay(ESLOV_DELAY);
-  uint8_t packet[sizeof(SensorConfigurationPacket) + 1]; 
+  uint8_t packet[sizeof(SensorConfigurationPacket) + 1];
   packet[0] = ESLOV_SENSOR_CONFIG_OPCODE;
   memcpy(&packet[1], &config, sizeof(SensorConfigurationPacket));
   Wire.beginTransmission(ESLOV_DEFAULT_ADDRESS);
@@ -195,7 +206,7 @@ void EslovHandler::writeConfigPacket(SensorConfigurationPacket& config)
 }
 
 uint8_t EslovHandler::requestPacketAck()
-{ 
+{
   delay(ESLOV_DELAY);
   uint8_t ret = 0;
   while(!ret) {
@@ -208,7 +219,7 @@ uint8_t EslovHandler::requestPacketAck()
   return Wire.read();
 }
 
-uint8_t EslovHandler::requestAvailableData() 
+uint8_t EslovHandler::requestAvailableData()
 {
   writeStateChange(ESLOV_AVAILABLE_SENSOR_STATE);
   while(!digitalRead(_eslovIntPin)) {}
@@ -236,6 +247,7 @@ bool EslovHandler::requestSensorData(SensorDataPacket &sData)
 
 void EslovHandler::toggleEslovIntPin()
 {
+    digitalWrite(PDBG, LOW); delay(10); digitalWrite(PDBG, HIGH);delay(20); digitalWrite(PDBG, LOW);
   if (!_intPinAsserted) {
     // Indicates eslov presence
     pinMode(_eslovIntPin, OUTPUT);
@@ -245,7 +257,7 @@ void EslovHandler::toggleEslovIntPin()
       _debug->println("Eslov int LOW");
     }
     //Use 1 sec delay to let Nicla see the LOW pin and enable Eslov
-    delay(500);
+    delay(1000);
 
     digitalWrite(_eslovIntPin, HIGH);
     _intPinCleared = true;
@@ -253,7 +265,7 @@ void EslovHandler::toggleEslovIntPin()
       _debug->println("Eslov int pin cleared");
     }
 
-    delay(500);
+    delay(1000);
 #if 1 || CONFIG_HANDSHAKE
     digitalWrite(PDBG, HIGH);
     pinMode(_eslovIntPin, INPUT);
@@ -291,7 +303,8 @@ void EslovHandler::debug(Stream &stream)
   _debug = &stream;
 }
 
-void EslovHandler::dump() 
+
+void EslovHandler::dump()
 {
   if (_debug) {
     _debug->print("received: ");
