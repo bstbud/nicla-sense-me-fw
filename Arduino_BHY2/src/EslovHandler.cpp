@@ -52,6 +52,7 @@ void EslovHandler::eslovAvailable()
 
 void EslovHandler::requestEvent()
 {
+    int ret;
   eslovBusy();
 
   if (_debug) {

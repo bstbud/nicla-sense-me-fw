@@ -91,11 +91,15 @@ void EslovHandler::update()
       Serial.write(availableData);
 
       SensorDataPacket sensorData;
+      bool ret;
       while (availableData) {
         //delay(ESLOV_DELAY);
-        requestSensorData(sensorData);
+        sensorData.sensorId = 0x00;
+        ret = requestSensorData(sensorData);
+        if (ret) {
+            Serial.write((uint8_t*)&sensorData, sizeof(sensorData));
+        }
         delay(ESLOV_DELAY);
-        Serial.write((uint8_t*)&sensorData, sizeof(sensorData));
         availableData--;
       }
 
@@ -221,7 +225,7 @@ bool EslovHandler::requestSensorData(SensorDataPacket &sData)
     while(!digitalRead(_eslovIntPin)) {}
   }
   uint8_t ret = Wire.requestFrom(ESLOV_DEFAULT_ADDRESS, sizeof(SensorDataPacket));
-  if (!ret) return false;
+  if (!ret) {sData.sensorId = 0xff; return false;}
 
   uint8_t *data = (uint8_t*)&sData;
   for (uint8_t i = 0; i < sizeof(SensorDataPacket); i++) {
@@ -248,7 +252,25 @@ void EslovHandler::toggleEslovIntPin()
     if (_debug) {
       _debug->println("Eslov int pin cleared");
     }
+
     delay(500);
+#if 1 || CONFIG_HANDSHAKE
+    digitalWrite(PDBG, HIGH);
+    pinMode(_eslovIntPin, INPUT);
+    digitalWrite(PDBG, LOW);
+    if (!(digitalRead(_eslovIntPin))) {
+            while (!(digitalRead(_eslovIntPin))) {
+            }
+
+            if (_debug) {
+            _debug->println("slave has released Eslov int");
+            }
+    }
+
+    if (_debug) {
+      _debug->println("slave has taken over the driver seat");
+    }
+#endif
   }
 }
 
