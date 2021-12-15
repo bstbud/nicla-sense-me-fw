@@ -34,8 +34,6 @@ bool Arduino_BHY2Host::begin(bool passthrough, NiclaWiring niclaConnection)
   if (niclaConnection == NICLA_AS_SHIELD) {
     eslovHandler.niclaAsShield();
   }
-
-
   return eslovHandler.begin(passthrough);
 }
 
@@ -49,10 +47,13 @@ void Arduino_BHY2Host::update()
     if (_passthrough){
       eslovHandler.update();
     } else {
-      while (availableSensorData() > 0) {
+        uint8_t dataCount = availableSensorData();
+        bool ret;
+      while (dataCount-- > 0) {
         SensorDataPacket data;
-        readSensorData(data);
-        sensorManager.process(data);
+        ret = readSensorData(data);
+        if (ret)
+            sensorManager.process(data);
       }
     }
   }

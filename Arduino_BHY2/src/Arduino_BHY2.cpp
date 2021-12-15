@@ -100,7 +100,7 @@ bool Arduino_BHY2::begin(NiclaConfig config, NiclaWiring niclaConnection)
   nicla::begin();
   _startTime = millis();
   nicla::enable3V3LDO();
-  Wire1.setClock(500000);
+  Wire1.setClock(400000);
   _pingTime = millis();
   if (!sensortec.begin()) {
     return false;

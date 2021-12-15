@@ -183,13 +183,13 @@ void EslovHandler::writeDfuPacket(uint8_t *data, uint8_t length)
 
 void EslovHandler::writeStateChange(EslovState state)
 {
-  delay(ESLOV_DELAY);
+  //delay(ESLOV_DELAY);
   while(!digitalRead(_eslovIntPin)) {}
   uint8_t packet[2] = {ESLOV_SENSOR_STATE_OPCODE, state};
   Wire.beginTransmission(ESLOV_DEFAULT_ADDRESS);
   Wire.write((uint8_t*)packet, sizeof(packet));
   Wire.endTransmission();
-  delay(ESLOV_DELAY);
+  //delay(ESLOV_DELAY);
   _eslovState = state;
 }
 
