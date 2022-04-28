@@ -27,10 +27,16 @@ public:
   float comp_h() {return _data.comp_h;}
   uint32_t comp_g() {return _data.comp_g;}
 
+  //this parameter temperatureOffset can be acquired by comparing the
+  //comp_t result from parseBSEC() to a reference ambinet temperature sensor when temperatureOffset is initially set to 0
+  void setTemperatureOffset(float temperatureOffset) {
+      sensortec.setTempOffsetParam(temperatureOffset);
+  }
+
 
   void setData(SensorDataPacket &data)
   {
-    
+
   }
 
   void setData(SensorLongDataPacket &data)
