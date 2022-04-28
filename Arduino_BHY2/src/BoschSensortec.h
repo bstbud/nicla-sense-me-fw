@@ -49,6 +49,7 @@ public:
   // ANNA <-> BOSCH interface
   void addSensorData(SensorDataPacket &sensorData);
   void addLongSensorData(SensorLongDataPacket &sensorData);
+  void setTempOffsetParam(float temp_offset);
 
   uint8_t acknowledgment();
 
@@ -58,9 +59,11 @@ private:
 
   uint8_t _workBuffer[WORK_BUFFER_SIZE];
   uint8_t _acknowledgment;
-  
+
   struct bhy2_dev _bhy2;
   uint8_t _sensorsPresent[32];
+
+  float _temperatureOffset;
 
 private:
   friend class Arduino_BHY2;

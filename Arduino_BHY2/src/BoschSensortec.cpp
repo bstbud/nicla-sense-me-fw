@@ -2,13 +2,15 @@
 #include "BoschParser.h"
 #include "sensors/SensorManager.h"
 
-BoschSensortec::BoschSensortec() : 
+BoschSensortec::BoschSensortec() :
   _acknowledgment(SensorNack),
   _debug(NULL)
 {
+    //this value is emperical based on some experiments using consumer grade therometers as a reference device when the device is powered using USB
+    _temperatureOffset = 5.16f;
 }
 
-BoschSensortec::~BoschSensortec() 
+BoschSensortec::~BoschSensortec()
 {
 }
 
@@ -75,6 +77,24 @@ bool BoschSensortec::begin()
   return true;
 }
 
+
+#define BHY2_TEMPERATURE_OFFSET_PARAM_ID 0x0a03
+void BoschSensortec::setTempOffsetParam(float temp_offset) {
+  uint8_t temp_buf[4];
+  uint8_t *p = (uint8_t*)&temp_offset;
+  int i;
+  int err;
+
+  for (i=0; i<4; i++) {
+    temp_buf[i] = *p++;
+  }
+
+  err = bhy2_set_parameter(BHY2_TEMPERATURE_OFFSET_PARAM_ID, temp_buf, 4, &_bhy2);
+  if (BHY2_OK == err) {
+      _temperatureOffset = temp_offset;
+  }
+}
+
 void BoschSensortec::printSensors() {
   bool presentBuff[256];
 
@@ -108,6 +128,12 @@ bool BoschSensortec::hasSensor(uint8_t sensorId) {
 void BoschSensortec::configureSensor(SensorConfigurationPacket& config)
 {
   auto ret = bhy2_set_virt_sensor_cfg(config.sensorId, config.sampleRate, config.latency, &_bhy2);
+
+  if ((SENSOR_ID_BSEC == config.sensorId) && (config.sampleRate > 0)) {
+      setTempOffsetParam(_temperatureOffset);
+  }
+
+
   if (_debug) _debug->println(get_api_error(ret));
   if (ret == BHY2_OK) {
     _acknowledgment = SensorAck;
