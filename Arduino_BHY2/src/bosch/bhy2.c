@@ -1505,7 +1505,13 @@ static int8_t parse_fifo(enum bhy2_fifo_type source, struct bhy2_fifo_buffer *fi
                     info.callback(&data_info, info.callback_ref);
 
                 }
-                fifo_p->read_pos += info.event_size;
+
+                if (info.event_size > 0) {
+                    fifo_p->read_pos += info.event_size;
+                } else {
+                    //printf("error found parsing fifo, invalid frame found @:%d\n", fifo_p->read_pos);
+                    return BHY2_E_INVALID_EVENT_SIZE;
+                }
                 break;
         }
     }
