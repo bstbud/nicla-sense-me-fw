@@ -10,6 +10,8 @@
 #include "sensors/SensorXYZ.h"
 #include "sensors/SensorQuaternion.h"
 #include "sensors/SensorBSEC.h"
+#include "sensors/SensorBSEC2.h"
+#include "sensors/SensorBSEC2Collector.h"
 #include "sensors/SensorActivity.h"
 #include "sensors/Sensor.h"
 
@@ -45,7 +47,7 @@ public:
   Arduino_BHY2();
   virtual ~Arduino_BHY2();
 
-  // Necessary API. Update function should be continuously polled 
+  // Necessary API. Update function should be continuously polled
   bool begin(NiclaConfig config = NICLA_BLE_AND_I2C, NiclaWiring niclaConnection = NICLA_VIA_ESLOV);
   bool begin(NiclaSettings& settings);
   void update(); // remove this to enforce a sleep
@@ -66,6 +68,8 @@ public:
   void parse(SensorDataPacket& data, DataXYZ& vector);
   void parse(SensorDataPacket& data, DataOrientation& vector);
   void parse(SensorDataPacket& data, DataOrientation& vector, float scaleFactor);
+
+  void setTempOffsetParam(float temp_offset);
 
   void setLDOTimeout(int time);
 

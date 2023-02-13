@@ -229,6 +229,17 @@ void Arduino_BHY2::parse(SensorDataPacket& data, DataOrientation& vector, float 
   DataParser::parseEuler(data, vector, scaleFactor);
 }
 
+void Arduino_BHY2::setTempOffsetParam(float temp_offset) {
+  uint8_t temp_buf[4];
+  uint8_t *p = (uint8_t*)&temp_offset;
+
+  for(int i=0; i<4; i++){
+    temp_buf[i] = *p++;
+  }
+
+  sensortec.bhy2_setParameter(0x0a03, temp_buf, sizeof(temp_buf));
+}
+
 void Arduino_BHY2::debug(Stream &stream)
 {
   _debug = &stream;

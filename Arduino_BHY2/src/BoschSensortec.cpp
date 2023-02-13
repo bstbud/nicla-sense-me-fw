@@ -2,13 +2,13 @@
 #include "BoschParser.h"
 #include "sensors/SensorManager.h"
 
-BoschSensortec::BoschSensortec() : 
+BoschSensortec::BoschSensortec() :
   _acknowledgment(SensorNack),
   _debug(NULL)
 {
 }
 
-BoschSensortec::~BoschSensortec() 
+BoschSensortec::~BoschSensortec()
 {
 }
 
@@ -17,11 +17,11 @@ bool BoschSensortec::begin()
   setup_interfaces(false, BHY2_SPI_INTERFACE);
   auto ret = bhy2_init(BHY2_SPI_INTERFACE, bhy2_spi_read, bhy2_spi_write, bhy2_delay_us, MAX_READ_WRITE_LEN, NULL, &_bhy2);
   if (_debug) _debug->println(get_api_error(ret));
-  if (ret != BHY2_OK) return false; 
+  if (ret != BHY2_OK) return false;
 
   bhy2_soft_reset(&_bhy2);
 
-  // Print bhi status 
+  // Print bhi status
   uint8_t stat = 0;
   //delay(1000);
   ret = bhy2_get_boot_status(&stat, &_bhy2);
@@ -33,7 +33,7 @@ bool BoschSensortec::begin()
 
   ret = bhy2_boot_from_flash(&_bhy2);
   if (_debug) _debug->println(get_api_error(ret));
-  if (ret != BHY2_OK) return false; 
+  if (ret != BHY2_OK) return false;
 
   ret = bhy2_get_boot_status(&stat, &_bhy2);
   if (_debug) {
@@ -89,7 +89,7 @@ void BoschSensortec::printSensors() {
 
   if (_debug) {
     _debug->println("Present sensors: ");
-    for (int i = 0; i < sizeof(presentBuff); i++) {
+    for (int i = 0; i < (int)sizeof(presentBuff); i++) {
       if (presentBuff[i]) {
         _debug->print(i);
         _debug->print(" - ");
@@ -131,6 +131,49 @@ void BoschSensortec::getSensorConfiguration(uint8_t id, SensorConfig& virt_senso
   bhy2_get_virt_sensor_cfg(id, &virt_sensor_conf, &_bhy2);
 }
 
+int8_t BoschSensortec::bhy2_setParameter(uint16_t param, const uint8_t *buffer, uint32_t length) {
+  return bhy2_set_parameter(param, buffer, length, &_bhy2);
+}
+
+int8_t BoschSensortec::bhy2_getParameter(uint16_t param, uint8_t *buffer, uint32_t length, uint32_t *actual_len) {
+  return bhy2_get_parameter(param, buffer, length, actual_len, &_bhy2);
+}
+
+void BoschSensortec::bhy2_bsec2_setConfigString(const uint8_t * buffer, uint32_t length) {
+    const uint8_t BSEC2_CMD_ENA_WR[] = {0x01,0x00,0x00,0x00};
+    const uint8_t BSEC2_CMD_WR_CFG[] = {0x00,0x00,0x00,0x00};
+    const uint16_t BSEC2_CFG_PARAM_ID_1 = 0X0802;
+    const uint16_t BSEC2_CFG_PARAM_ID_2 = 0X0801;
+
+    const uint16_t BLOCK_SIZE = 4;
+    uint16_t wr_cnt = length / BLOCK_SIZE;
+    uint8_t remain[BLOCK_SIZE] = {0};
+    uint16_t i=0;
+
+    bhy2_setParameter(BSEC2_CFG_PARAM_ID_1, BSEC2_CMD_ENA_WR, sizeof(BSEC2_CMD_ENA_WR)/sizeof(BSEC2_CMD_ENA_WR[0]));
+
+    for (i=0; i<wr_cnt; i++){
+        bhy2_setParameter(BSEC2_CFG_PARAM_ID_2, &buffer[i*BLOCK_SIZE], BLOCK_SIZE);
+    }
+
+    if (length % BLOCK_SIZE != 0){
+        memcpy(remain, &buffer[i*BLOCK_SIZE], length % BLOCK_SIZE);
+        bhy2_setParameter(BSEC2_CFG_PARAM_ID_2, remain, BLOCK_SIZE);
+    }
+
+    bhy2_setParameter(BSEC2_CFG_PARAM_ID_1, BSEC2_CMD_WR_CFG, sizeof(BSEC2_CMD_ENA_WR)/sizeof(BSEC2_CMD_ENA_WR[0]));
+}
+
+void BoschSensortec::bhy2_bsec2_setHP(const uint8_t * hp_temp, uint8_t hp_temp_len, const uint8_t * hp_time, uint8_t hp_time_len) {
+    const uint16_t BSEC2_CFG_PARAM_ID_1 = 0X0803;
+    const uint16_t BSEC2_CFG_PARAM_ID_2 = 0X0804;
+
+    bhy2_setParameter(BSEC2_CFG_PARAM_ID_1, hp_temp, hp_temp_len);
+    bhy2_setParameter(BSEC2_CFG_PARAM_ID_2, hp_time, hp_time_len);
+}
+
+
+
 uint8_t BoschSensortec::availableSensorData()
 {
   return _sensorQueue.size();
@@ -153,9 +196,9 @@ bool BoschSensortec::readLongSensorData(SensorLongDataPacket &data)
 
 void BoschSensortec::addSensorData(SensorDataPacket &sensorData)
 {
-  // Overwrites oldest data when fifo is full 
+  // Overwrites oldest data when fifo is full
   _sensorQueue.push(sensorData);
-  // Alternative: handle the full queue by storing it in flash 
+  // Alternative: handle the full queue by storing it in flash
   SensorLongDataPacket longData;
   memcpy(&longData, &sensorData, sizeof(SensorDataPacket));
   sensorManager.process(longData);
@@ -163,9 +206,9 @@ void BoschSensortec::addSensorData(SensorDataPacket &sensorData)
 
 void BoschSensortec::addLongSensorData(SensorLongDataPacket &sensorData)
 {
-  // Overwrites oldest data when fifo is full 
+  // Overwrites oldest data when fifo is full
   _longSensorQueue.push(sensorData);
-  // Alternative: handle the full queue by storing it in flash 
+  // Alternative: handle the full queue by storing it in flash
   sensorManager.process(sensorData);
 }
 
