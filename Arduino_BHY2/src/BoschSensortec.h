@@ -43,11 +43,14 @@ public:
   virtual ~BoschSensortec();
 
   // sketch-side API
-  bool begin(); 
+  bool begin();
   void update();
   void configureSensor(SensorConfigurationPacket& config);
   int configureSensorRange(uint8_t id, uint16_t range);
   void getSensorConfiguration(uint8_t id, SensorConfig& virt_sensor_conf);
+
+  int8_t bhy2_setParameter(uint16_t param, const uint8_t *buffer, uint32_t length);
+  int8_t bhy2_getParameter(uint16_t param, uint8_t *buffer, uint32_t length, uint32_t *actual_len);
 
   void printSensors();
   bool hasSensor(uint8_t sensorId);
