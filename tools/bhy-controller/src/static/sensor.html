@@ -566,6 +566,8 @@ function parseData(sensor, data) {
     parse_scheme = parseScheme["types"][8]["parse-scheme"];
   } else if (scheme == "BSEC2GasClassifierOutput") {
     parse_scheme = parseScheme["types"][9]["parse-scheme"];
+  } else if (scheme == "CS_222") {
+    parse_scheme = parseScheme["types"][10]["parse-scheme"];
   }
 
   parse_scheme.forEach(element => {
@@ -619,6 +621,15 @@ function parseData(sensor, data) {
     result = result + element.name + ": " + value + "   ";
     console.log(dataIndex);
     dataIndex += size;
+
+    if (scheme == "CS_222") {
+       const CLASSES = ["random", "clapping", "teeth brushing", "hand washing", "hair combing"];
+       class_id = data.getUint8(2 + 0,true);
+       class_name = CLASSES[class_id];
+       probability = data.getUint8(2 + 1,true);
+       timestamp_ms = data.getUint32(2 + 2, true);
+       console.log(class_name + ":" + probability + "%" + " timestamp_ms: " + timestamp_ms);
+    }
 
   });
 

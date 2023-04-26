@@ -119,6 +119,17 @@
         {"name": "Gas3(%)", "type": "uint8", "scale-factor": 1},
         {"name": "Accuracy", "type": "uint8", "scale-factor": 1}
       ]
+    },
+
+    {
+      "id": 10,
+      "type": "CS_222",
+      "parse-scheme":
+      [
+        {"name": "predicted_class", "type": "uint8", "scale-factor": 1},
+        {"name": "probability(%)", "type": "uint8", "scale-factor": 1},
+        {"name": "timestamp(ms)", "type": "uint32", "scale-factor": 1}
+      ]
     }
   ]
 }

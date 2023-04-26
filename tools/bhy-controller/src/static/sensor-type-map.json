@@ -602,6 +602,13 @@
     "dashboard": 0
   },
 
+  "222": {
+    "name": "Custom sensor",
+    "scheme": "CS_222",
+    "value": 0,
+    "dashboard": 1
+  },
+
   "245": {
     "name": "TIMESTAMP_SMALL_WU",
     "scheme": "singleRead",
