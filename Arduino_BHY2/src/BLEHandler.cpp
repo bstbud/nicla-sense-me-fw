@@ -37,8 +37,9 @@ BLEHandler::~BLEHandler()
 {
 }
 
+bool bypassRawData4CS = false;
 // DFU channel
-void BLEHandler::processDFUPacket(DFUType dfuType, BLECharacteristic characteristic) 
+void BLEHandler::processDFUPacket(DFUType dfuType, BLECharacteristic characteristic)
 {
   uint8_t data[sizeof(DFUPacket)];
   characteristic.readValue(data, sizeof(data));
@@ -110,6 +111,16 @@ void BLEHandler::receivedSensorConfig(BLEDevice central, BLECharacteristic chara
       }
   }
 #endif
+  if (data.sensorId == 222) {
+      if (data.sampleRate > 0) {
+          bypassRawData4CS = true;
+          printf("bypass enabled");
+      } else {
+          bypassRawData4CS = false;
+          printf("bypass disabled");
+      }
+      return;
+  }
 
   sensortec.configureSensor(data);
 }
@@ -168,6 +179,12 @@ void BLEHandler::update()
             //since the buffer is not available, we just send the data directly
             SensorDataPacket data;
             sensortec.readSensorData(data);
+            if (bypassRawData4CS) {
+                if (data.sensorId <= 16) {
+                    --availableData;
+                    continue;
+                }
+            }
             sensorDataCharacteristic.writeValue(&data, sizeof(SensorDataPacket));
             --availableData;
         }
